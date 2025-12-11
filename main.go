@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/exec"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
 
@@ -29,12 +30,16 @@ const (
 )
 
 func main() {
-	target := os.Getenv("CLAUDE_CODE_BIN")
-	if target == "" {
-		target = "claude"
+	target := "claude"
+	args := os.Args[1:]
+
+	// First arg can be a path to the claude binary
+	if len(args) > 0 && !strings.HasPrefix(args[0], "-") {
+		target = args[0]
+		args = args[1:]
 	}
 
-	cmd := exec.Command(target, os.Args[1:]...)
+	cmd := exec.Command(target, args...)
 
 	ptmx, err := pty.Start(cmd)
 	if err != nil {

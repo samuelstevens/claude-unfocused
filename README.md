@@ -12,7 +12,7 @@ A lightweight wrapper for Claude Code that filters out tmux focus events (`ESC[I
 ## Install
 
 ```sh
-go install github.com/samstevens/claude-unfocused@latest
+go install github.com/samuelstevens/claude-unfocused@latest
 ```
 
 ## Usage

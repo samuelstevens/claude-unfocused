@@ -31,9 +31,12 @@ const (
 )
 
 func main() {
-	target := pflag.String("claude", "claude", "path to claude binary")
-	pflag.CommandLine.ParseErrorsWhitelist.UnknownFlags = true
-	pflag.Parse()
+	// Use custom FlagSet to avoid automatic --help handling (let it pass through to claude)
+	fs := pflag.NewFlagSet("claude-unfocused", pflag.ContinueOnError)
+	fs.SetOutput(io.Discard)
+	fs.ParseErrorsWhitelist.UnknownFlags = true
+	target := fs.String("claude", "claude", "path to claude binary")
+	_ = fs.Parse(os.Args[1:])
 
 	// Collect args to pass through (pflag drops unknown flags, so reconstruct manually)
 	args := passthroughArgs(os.Args[1:])

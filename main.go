@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/creack/pty"
+	"github.com/spf13/pflag"
 	"golang.org/x/term"
 )
 
@@ -30,16 +31,14 @@ const (
 )
 
 func main() {
-	target := "claude"
-	args := os.Args[1:]
+	target := pflag.String("claude", "claude", "path to claude binary")
+	pflag.CommandLine.ParseErrorsWhitelist.UnknownFlags = true
+	pflag.Parse()
 
-	// First arg can be a path to the claude binary
-	if len(args) > 0 && !strings.HasPrefix(args[0], "-") {
-		target = args[0]
-		args = args[1:]
-	}
+	// Collect args to pass through (pflag drops unknown flags, so reconstruct manually)
+	args := passthroughArgs(os.Args[1:])
 
-	cmd := exec.Command(target, args...)
+	cmd := exec.Command(*target, args...)
 
 	ptmx, err := pty.Start(cmd)
 	if err != nil {
@@ -214,4 +213,21 @@ func main() {
 			}
 		}
 	}
+}
+
+// passthroughArgs returns all args except --claude and its value
+func passthroughArgs(rawArgs []string) []string {
+	var args []string
+	for i := 0; i < len(rawArgs); i++ {
+		arg := rawArgs[i]
+		switch {
+		case arg == "--claude" && i+1 < len(rawArgs):
+			i++ // skip value
+		case strings.HasPrefix(arg, "--claude="):
+			// skip
+		default:
+			args = append(args, arg)
+		}
+	}
+	return args
 }
